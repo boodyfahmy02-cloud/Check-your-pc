@@ -1,0 +1,411 @@
+/* ===================================================================
+   static/style.css
+   Final integrated stylesheet: Dark theme + SVG hero + glass UI
+   + Thunder/Rain canvas layer behind UI (canvases z-index = 0)
+   =================================================================== */
+
+/* -------------------------
+   Base / Reset
+   ------------------------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; font-family: "Inter", "Roboto", Arial, sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+a { color: inherit; text-decoration: none; }
+
+/* -------------------------
+   Background: make pure black (as requested)
+   ------------------------- */
+body {
+  position: relative;
+  min-height: 100vh;
+  background-color: #000; /* fallback */
+  background-image: url("/static/images/bg.png"); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  color: #e6eef6;
+  overflow-x: hidden;
+  z-index: 0; /* important for stacking */
+}
+
+/* overlay above SVG/canvases but under main UI */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35); /* subtle dim above canvases */
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* main container above overlay & canvases */
+.container { position: relative; z-index: 3; max-width: 980px; }
+
+/* -------------------------
+   SVG Hero background (if used) - keep behind canvases
+   ------------------------- */
+.wave-hero-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.wave-svg { width: 130vw; height: 110vh; display: block; transform-origin: center center; mix-blend-mode: screen; }
+
+/* blob animations (if SVG present) */
+.blob { transform-origin: center center; transform-box: fill-box; will-change: transform; }
+.blob-a { animation: floatA 10s ease-in-out infinite; opacity: 0.95; }
+.blob-b { animation: floatB 12s ease-in-out infinite; opacity: 0.9; }
+.blob-c { animation: floatC 14s ease-in-out infinite; opacity: 0.85; }
+.streak { filter: blur(18px); opacity: 0.85; transform-origin: center left; animation: streakMove 18s linear infinite; }
+.s1 { animation-duration: 18s; } .s2 { animation-duration: 26s; }
+
+/* -------------------------
+   Canvas (Thunder/Rain) styles - ensure behind UI
+   ------------------------- */
+/* canvases are full-screen and placed BEFORE the main container in HTML */
+.thunder { position: relative; }
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none;
+  z-index: 0; /* important: behind UI */
+}
+.container {
+  position: relative;
+  z-index: 3; /* فوق كل التأثيرات */
+}
+
+/* if you want different layering among canvases, adjust these */
+#canvas3 { z-index: 0; }  /* rain trough layer */
+#canvas2 { z-index: 0; }  /* rain drops */
+#canvas1 { z-index: 0; }  /* lightning */
+
+/* slight opacities to reduce visual noise */
+canvas#canvas2 { opacity: 0.9; }
+canvas#canvas1 { opacity: 0.95; }
+
+/* optional overlay above canvases (already body::before used) */
+/* -------------------------
+   Header
+   ------------------------- */
+.header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; z-index:4; position:relative; }
+.header .logo-box { display:flex; align-items:center; gap:12px; }
+.header .logo-square{ width:46px; height:46px; border-radius:8px; background: linear-gradient(135deg,#06b6d4,#06d6a0); display:flex; align-items:center; justify-content:center; color:#012; font-weight:700; box-shadow: 0 4px 18px rgba(2,6,12,0.6); }
+.header-logo { width:140px; height:auto; object-fit:contain; filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45)); }
+
+/* titles */
+h1 { margin:0 0 6px 0; color: #e6f7ff; font-size:20px; }
+.lead, .small-note { color: #c9eefe; opacity:0.9; font-size:13px; }
+
+/* -------------------------
+   Card / Panel styles (glass)
+   Ensure UI is above canvases
+   ------------------------- */
+.card, .front-ui, .chart-card {
+  position: relative;
+  z-index: 4; /* above overlay & canvases */
+  background: rgba(10,14,18,0.88); /* slightly darker for legibility */
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(2,6,12,0.6);
+  color: #e6eef6;
+}
+
+/* result box */
+#result {
+  margin-top: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 14px;
+  border-radius: 10px;
+}
+
+/* form controls */
+input.form-control, .form-select, .form-check-input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #e6eef6 !important;
+  box-shadow: none;
+}
+input::placeholder { color: rgba(230,238,246,0.45); }
+.form-check { margin-bottom: 8px; }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(90deg,#06b6d4,#06d6a0);
+  border: none;
+  color: #032a27;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(6,182,212,0.12);
+}
+.btn-primary:hover { filter: brightness(0.96); }
+
+/* Small diagnosis items */
+.diagnosis-item {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.03);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* -------------------------
+   Animations for SVG blobs (if present)
+   ------------------------- */
+@keyframes floatA { 0%{transform:translate3d(0,0,0) scale(1);}25%{transform:translate3d(-18px,10px,0) scale(1.02);}50%{transform:translate3d(0,20px,0) scale(1.01);}75%{transform:translate3d(18px,6px,0) scale(1.03);}100%{transform:translate3d(0,0,0) scale(1);} }
+@keyframes floatB { 0%{transform:translate3d(0,0,0) scale(1);}25%{transform:translate3d(24px,-10px,0) scale(1.015);}50%{transform:translate3d(0,18px,0) scale(1.02);}75%{transform:translate3d(-16px,8px,0) scale(1.01);}100%{transform:translate3d(0,0,0) scale(1);} }
+@keyframes floatC { 0%{transform:translate3d(0,0,0) scale(1);}25%{transform:translate3d(-30px,18px,0) scale(1.018);}50%{transform:translate3d(0,26px,0) scale(1.025);}75%{transform:translate3d(26px,6px,0) scale(1.012);}100%{transform:translate3d(0,0,0) scale(1);} }
+@keyframes streakMove { 0%{transform:translateX(-10%); opacity:0.25;}30%{opacity:0.65; transform:translateX(6%);}60%{opacity:0.45; transform:translateX(-4%);}100%{transform:translateX(-10%); opacity:0.25;} }
+
+/* -------------------------
+   Responsive tweaks
+   ------------------------- */
+@media (max-width:720px) {
+  .container { padding: 18px; }
+  .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .header-logo { width:110px; align-self:flex-end; }
+  .card { padding: 14px; }
+  h1 { font-size: 18px; }
+  /* reduce effects for performance on mobile */
+  canvas { opacity: 0.8; }
+}
+/* Force dark dropdown menu */
+select.form-select {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Dropdown items (Chrome, Edge) */
+select.form-select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Hover highlight inside dropdown */
+select.form-select option:hover {
+  background-color: #222222 !important;
+  color: #ffffff !important;
+}
+/* ===========================
+   Custom styled dropdown
+   =========================== */
+
+/* hide native select but keep it in DOM for forms */
+.custom-select-hidden {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+}
+
+/* wrapper */
+.custom-select {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: #fff;
+  user-select: none;
+}
+
+/* control (visible) */
+.custom-select__control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: box-shadow 220ms ease, transform 120ms ease;
+  min-height: 44px;
+  box-shadow: 0 6px 18px rgba(2,6,12,0.35);
+}
+
+/* left: icon + label */
+.custom-select__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* icon placeholder */
+.custom-select__icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.95;
+  filter: drop-shadow(0 6px 12px rgba(3,192,252,0.06));
+}
+
+/* caret */
+.custom-select__caret {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  transition: transform 220ms ease;
+  color: #cfeffd;
+}
+
+/* open state */
+.custom-select.open .custom-select__control {
+  box-shadow: 0 8px 28px rgba(3,192,252,0.08);
+  transform: translateY(-2px);
+}
+
+/* rotate caret */
+.custom-select.open .custom-select__caret { transform: rotate(180deg); }
+
+/* dropdown list */
+.custom-select__menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 10px;
+  background: rgba(6,10,14,0.95); /* dark */
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  padding: 8px;
+  z-index: 2000;
+  box-shadow: 0 24px 50px rgba(2,6,12,0.75);
+  max-height: 260px;
+  overflow: auto;
+  animation: menuIn 180ms ease;
+}
+
+/* item */
+.custom-select__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #e9fbff;
+  cursor: pointer;
+  transition: background 140ms ease, transform 80ms ease;
+  font-size: 13px;
+}
+.custom-select__option + .custom-select__option { margin-top: 6px; }
+
+/* hover / focus */
+.custom-select__option:hover,
+.custom-select__option[aria-selected="true"],
+.custom-select__option.active {
+  background: linear-gradient(90deg, rgba(3,192,252,0.06), rgba(6,214,160,0.03));
+  box-shadow: 0 6px 20px rgba(3,192,252,0.06);
+  transform: translateY(-1px);
+}
+
+/* small description (optional) */
+.custom-select__meta {
+  display:block;
+  font-size:11px;
+  color: rgba(255,255,255,0.55);
+  margin-left: 30px;
+}
+
+/* keyboard focus ring for accessibility */
+.custom-select__option:focus {
+  outline: 2px solid rgba(3,192,252,0.12);
+  outline-offset: 2px;
+}
+
+/* animation */
+@keyframes menuIn {
+  from { transform: translateY(-6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* small responsive tweak */
+@media (max-width:720px) {
+  .custom-select__control { padding: 10px; min-height: 42px; }
+  .custom-select__option { font-size: 13px; }
+}
+/* =============================
+   FIX: Make <input type="number"> readable on dark UI
+   (High-specificity, cross-browser)
+   ============================= */
+
+/* ensure we target inputs that use bootstrap-like classes */
+input[type="number"].form-control,
+input.form-control[type="number"] {
+  color: #ffffff !important;                          /* white text */
+  background: rgba(255, 255, 255, 0.03) !important;   /* dark glass bg */
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  /* remove native number arrows appearance on firefox (keeps text visible) */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* focus / active state (glow) */
+input[type="number"].form-control:focus,
+input.form-control[type="number"]:focus {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.06) !important;   /* slightly brighter on focus */
+  border: 1px solid #00c2ff !important;
+  box-shadow: 0 0 12px rgba(0, 194, 255, 0.40) !important;
+  outline: none !important;
+}
+
+/* placeholder color (all browsers) */
+input[type="number"].form-control::placeholder,
+input.form-control[type="number"]::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Firefox specific placeholder (older versions) */
+input[type="number"].form-control:-moz-placeholder,
+input.form-control[type="number"]:-moz-placeholder {
+  color: rgba(255,255,255,0.35) !important;
+}
+
+/* WebKit spin buttons (Chrome, Edge, Safari) - make them visible & white */
+input[type="number"].form-control::-webkit-inner-spin-button,
+input[type="number"].form-control::-webkit-outer-spin-button {
+  opacity: 0.9;
+  filter: invert(1) grayscale(1) brightness(1.1);
+}
+
+/* If you prefer to hide native spin buttons on desktop, uncomment below */
+/*
+input[type="number"].form-control::-webkit-inner-spin-button,
+input[type="number"].form-control::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+*/
+
+/* small tweak: when input is disabled make it less bright but still legible */
+input[type="number"].form-control:disabled {
+  color: rgba(255,255,255,0.7) !important;
+  background: rgba(255,255,255,0.02) !important;
+}
+
+/* Accessibility: visible focus for keyboard users */
+input[type="number"].form-control:focus-visible {
+  box-shadow: 0 0 10px rgba(0,194,255,0.35);
+  border-color: #00c2ff;
+}
+
+
+
+
+/* Developer notes:
+ - canvases must appear in HTML before the .container so they are visually behind the UI.
+ - If a specific UI element still appears under rain, increase its z-index (e.g., .card { z-index: 50 }).
+ - Hard refresh after changes (Ctrl+Shift+R). */
